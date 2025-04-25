@@ -1,38 +1,109 @@
-# 🛡️ SecureAnalyzer Pro
+# 🛡️ SecureAnalyzer Pro - Advanced Security Analysis System
 
-## 📝 Description
-SecureAnalyzer Pro is a comprehensive web-based security analysis tool that provides file scanning, hash analysis, and secure user management capabilities. This platform offers robust security features for analyzing files and hashes while maintaining user privacy and data security.
+A comprehensive web-based security analysis platform that provides real-time file scanning, hash analysis, and advanced threat detection capabilities. This enterprise-grade system includes robust user management, detailed reporting, and advanced security features.
 
-## ⭐ Features
-- **🔍 File Scanning System**
-  - Advanced file analysis and threat detection
-  - Detailed scan results visualization
-  - Support for multiple file formats (PDF, DOC, DOCX, XLS, XLSX, ZIP, etc.)
-  - Real-time malware detection
-  - Sandbox environment for suspicious files
+## 🌟 Core Features
 
-- **🔐 Hash Analysis**
-  - Hash identification and verification
-  - Support for MD5, SHA-1, SHA-256, SHA-512
-  - Real-time hash analysis results
-  - Hash database comparison
-  - Bulk hash checking capabilities
+### 🔍 File Analysis System
+- Real-time malware detection
+- Advanced file structure analysis
+- Multiple file format support (PDF, DOC, DOCX, XLS, XLSX, ZIP, RAR, EXE)
+- Sandbox environment for suspicious files
+- Detailed threat visualization
+- Batch processing capabilities
+- Binary pattern matching
+- Signature-based detection
+- Entropy analysis
+- Machine learning classification
+- Behavioral analysis
+- Network traffic analysis
 
-- **👥 User Management**
-  - Secure user registration and authentication
-  - Two-factor authentication (2FA)
-  - Password recovery system with secure tokens
-  - User dashboard with personalized analytics
-  - Role-based access control (Admin, Analyst, User)
+### 🔐 Hash Analysis Engine
+- Multi-algorithm hash generation (MD5, SHA-1, SHA-256, SHA-512)
+- Real-time hash verification
+- Database comparison
+- Bulk hash checking (up to 100 hashes)
+- Historical hash analysis
+- Custom hash database integration
+- Multiple algorithm support
+- Real-time verification
+- Threat intelligence integration
 
-- **🔒 Security Features**
-  - AES-256 encryption for data handling
-  - Bcrypt password hashing
-  - Protected file scanning environment
-  - Rate limiting and brute force protection
-  - CSRF protection and XSS prevention
+### 👥 User Management System
+- Role-based access control (Admin, Analyst, User)
+- Two-factor authentication (2FA)
+- Secure password management
+- Activity logging and auditing
+- API key management
+- Session control
+- User dashboard with personalized analytics
+- Password recovery system with secure tokens
 
-## 🚀 Installation Instructions
+### 📊 Advanced Reporting
+- Custom report generation
+- PDF export functionality
+- Real-time analytics
+- Threat intelligence feeds
+- Historical data analysis
+- Compliance reporting
+- Export results in CSV/JSON format
+
+## 📁 Project Structure
+
+```
+secureanalyzer-pro/
+│
+├── src/                    # Source files
+│   ├── api/               # API endpoints
+│   │   ├── auth.js        # Authentication routes
+│   │   ├── files.js       # File handling routes
+│   │   ├── hashes.js      # Hash analysis routes
+│   │   └── reports.js     # Reporting routes
+│   │
+│   ├── config/            # Configuration files
+│   │   ├── database.js    # Database configuration
+│   │   ├── security.js    # Security settings
+│   │   └── email.js       # Email configuration
+│   │
+│   ├── models/            # Database models
+│   │   ├── user.js        # User model
+│   │   ├── scan.js        # Scan results model
+│   │   └── report.js      # Report model
+│   │
+│   ├── services/          # Business logic
+│   │   ├── scanner.js     # File scanning service
+│   │   ├── analyzer.js    # Hash analysis service
+│   │   └── reporter.js    # Report generation service
+│   │
+│   ├── utils/             # Utility functions
+│   │   ├── encryption.js  # Encryption utilities
+│   │   ├── validation.js  # Input validation
+│   │   └── logger.js      # Logging utility
+│   │
+│   └── views/             # EJS templates
+│       ├── dashboard/     # Dashboard views
+│       ├── analysis/      # Analysis views
+│       └── reports/       # Report views
+│
+├── public/                # Static files
+│   ├── css/              # Stylesheets
+│   ├── js/               # Client-side JavaScript
+│   └── images/           # Image assets
+│
+├── tests/                # Test files
+│   ├── unit/            # Unit tests
+│   └── integration/     # Integration tests
+│
+├── scripts/             # Utility scripts
+│   ├── setup.js        # Setup script
+│   └── backup.js       # Backup script
+│
+└── docs/               # Documentation
+    ├── api/           # API documentation
+    └── guides/        # User guides
+```
+
+## 🚀 Installation
 
 ### Prerequisites
 - Node.js (v16.x or higher)
@@ -40,25 +111,40 @@ SecureAnalyzer Pro is a comprehensive web-based security analysis tool that prov
 - Redis (v6.x or higher)
 - Python (v3.8 or higher) for analysis scripts
 
-1. Clone the repository
+### Basic Installation
 ```bash
+# Clone repository
 git clone https://github.com/yourusername/secureanalyzer-pro.git
 cd secureanalyzer-pro
-```
 
-2. Install dependencies
-```bash
+# Install dependencies
 npm install
-# Install Python dependencies
 pip install -r requirements.txt
-```
 
-3. Configure environment variables
-```bash
+# Configure environment
 cp .env.example .env
+
+# Initialize database
+npm run db:setup
+npm run db:migrate
+npm run db:seed  # Optional
+
+# Build assets
+npm run build
+npm run docs
+
+# Start application
+npm run dev      # Development mode
+npm start        # Production mode
 ```
 
-### 🔧 Environment Configuration (.env)
+### Docker Installation
+```bash
+# Build and run with Docker Compose
+docker-compose up --build
+```
+
+## ⚙️ Environment Configuration (.env)
 ```env
 # Application
 NODE_ENV=development
@@ -100,82 +186,67 @@ LOG_LEVEL=debug
 LOG_FILE=./logs/app.log
 ```
 
-4. Set up the database
+## 💻 Usage
+
+### Command Line Interface
 ```bash
-# Initialize database with default settings
-npm run db:setup
+# Start server
+npm start
 
-# Run database migrations
-npm run db:migrate
+# Run in development mode
+npm run dev
 
-# Seed initial data (optional)
-npm run db:seed
-```
+# Run tests
+npm test
 
-5. Build assets
-```bash
-# Build frontend assets
-npm run build
-
-# Generate API documentation
+# Generate documentation
 npm run docs
 ```
 
-6. Start the application
-```bash
-# Development mode
-npm run dev
+### API Usage
+```javascript
+// Example API usage
+const api = require('secureanalyzer-api');
 
-# Production mode
-npm run start
+// Initialize client
+const client = new api.Client({
+  apiKey: 'your-api-key',
+  endpoint: 'https://api.secureanalyzer.com'
+});
+
+// Scan file
+const result = await client.scanFile('path/to/file');
 ```
 
-## 💻 Usage
-1. **👤 User Registration and Login**
-   - Navigate to `/register` to create a new account
-   - Use `/login` to access your dashboard
-   - Enable 2FA for additional security
-
-2. **📁 File Scanning**
-   - Supported file types: .pdf, .doc, .docx, .xls, .xlsx, .zip, .rar, .exe
-   - Maximum file size: 50MB
-   - Concurrent scanning: Up to 5 files
-   - Download detailed PDF reports
-
-3. **#️⃣ Hash Analysis**
-   - Supported algorithms: MD5, SHA-1, SHA-256, SHA-512
-   - Batch analysis: Up to 100 hashes
-   - Export results in CSV/JSON format
-
-4. **📊 Dashboard Management**
-   - Real-time scan monitoring
-   - Historical analysis data
-   - Custom report generation
-   - Account security settings
-
 ## 🛠️ Technologies Used
-- **🎨 Frontend**
-  - EJS (Embedded JavaScript templating)
-  - HTML5/CSS3
-  - JavaScript/jQuery
-  - Bootstrap 5
-  - Chart.js for analytics
-  - Socket.io for real-time updates
 
-- **⚙️ Backend**
-  - Node.js (v16+)
-  - Express.js
-  - MongoDB & Mongoose
-  - Redis for caching
-  - JWT authentication
-  - Python scripts for analysis
+### Frontend
+- EJS (Embedded JavaScript templating)
+- HTML5/CSS3
+- JavaScript/jQuery
+- Bootstrap 5
+- Chart.js for analytics
+- Socket.io for real-time updates
 
-- **🔒 Security**
-  - Helmet.js for HTTP headers
-  - Express-rate-limit
-  - CORS protection
-  - SQL injection prevention
-  - Regular security audits
+### Backend
+- Node.js (v16+)
+- Express.js
+- MongoDB & Mongoose
+- Redis for caching
+- JWT authentication
+- Python scripts for analysis
+
+### Security
+- Helmet.js for HTTP headers
+- Express-rate-limit
+- CORS protection
+- SQL injection prevention
+- Regular security audits
+- AES-256 encryption
+- Bcrypt password hashing
+- Protected file scanning environment
+- Rate limiting and brute force protection
+- CSRF protection and XSS prevention
 
 ## 🤝 Contributing
 We welcome contributions! Here's how you can help:
