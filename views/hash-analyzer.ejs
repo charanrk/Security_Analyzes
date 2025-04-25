@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hash Analysis - Security Analysis Tool</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            background: #1a1f2e;
+        }
+        .analysis-card {
+            background: rgba(30, 41, 59, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(8px);
+        }
+    </style>
+</head>
+<body class="text-gray-100 min-h-screen">
+    <%- include('partials/nav') %>
+
+    <div class="container mx-auto px-4 py-8">
+        <!-- Hash Input Section -->
+        <div class="analysis-card rounded-xl p-6 mb-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold">Hash Analysis</h2>
+                <input type="text" id="hashInput" 
+                       class="flex-1 ml-4 bg-gray-800 border border-gray-700 rounded-lg p-3 text-white"
+                       placeholder="Enter hash to analyze">
+                <button onclick="analyzeHash()" 
+                        class="ml-4 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors">
+                    Analyze Hash
+                </button>
+            </div>
+        </div>
+
+        <!-- Analysis Results Section -->
+        <div id="analysisResult" class="hidden">
+            <div class="flex justify-between items-center mb-4">
+                <h1 class="text-2xl font-bold">Hash Analysis Results</h1>
+                <button onclick="newAnalysis()" class="text-blue-400 hover:text-blue-300">
+                    ← New Analysis
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Hash Information -->
+                <div class="analysis-card rounded-xl p-6">
+                    <h2 class="text-xl font-bold text-blue-400 mb-4">Hash Information</h2>
+                    <div class="space-y-3">
+                        <div>
+                            <span class="text-gray-400">Hash:</span>
+                            <span id="hashValue" class="ml-2 font-mono"></span>
+                        </div>
+                        <div>
+                            <span class="text-gray-400">Type:</span>
+                            <span id="hashType" class="ml-2"></span>
+                        </div>
+                        <div>
+                            <span class="text-gray-400">Length:</span>
+                            <span id="hashLength" class="ml-2"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Analysis Summary -->
+                <div class="analysis-card rounded-xl p-6">
+                    <h2 class="text-xl font-bold text-blue-400 mb-4">Analysis Summary</h2>
+                    <div class="space-y-3">
+                        <div>
+                            <span class="text-gray-400">Status:</span>
+                            <span id="hashStatus" class="ml-2 text-red-500"></span>
+                        </div>
+                        <div>
+                            <span class="text-gray-400">Confidence:</span>
+                            <span id="hashConfidence" class="ml-2"></span>
+                        </div>
+                        <div>
+                            <span class="text-gray-400">First Seen:</span>
+                            <span id="hashFirstSeen" class="ml-2"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detailed Analysis -->
+                <div class="analysis-card rounded-xl p-6 lg:col-span-2">
+                    <h2 class="text-xl font-bold text-blue-400 mb-4">Detailed Analysis</h2>
+                    
+                    <!-- Reputation Information -->
+                    <div class="mb-6">
+                        <h3 class="text-lg font-semibold mb-3">Reputation Information</h3>
+                        <div id="reputationInfo" class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <!-- Populated by JavaScript -->
+                        </div>
+                    </div>
+
+                    <!-- File Information -->
+                    <div class="mb-6">
+                        <h3 class="text-lg font-semibold mb-3">File Information</h3>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <span class="text-gray-400">File Type:</span>
+                                <span id="fileType" class="ml-2"></span>
+                            </div>
+                            <div>
+                                <span class="text-gray-400">Size:</span>
+                                <span id="fileSize" class="ml-2"></span>
+                            </div>
+                            <div class="col-span-2">
+                                <span class="text-gray-400">Magic:</span>
+                                <span id="fileMagic" class="ml-2"></span>
+                            </div>
+                            <div class="col-span-2">
+                                <span class="text-gray-400">SSDeep:</span>
+                                <span id="fileSSDeep" class="ml-2 font-mono text-sm"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Detection History -->
+                    <div>
+                        <h3 class="text-lg font-semibold mb-3">Detection History</h3>
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead>
+                                    <tr class="text-left text-gray-400">
+                                        <th class="pb-2">Date</th>
+                                        <th class="pb-2">Scanner</th>
+                                        <th class="pb-2">Result</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="detectionHistory">
+                                    <!-- Populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <%- include('partials/footer') %>
+
+    <script>
+        async function analyzeHash() {
+            const hash = document.getElementById('hashInput').value.trim();
+            if (!hash) return;
+
+            try {
+                const response = await fetch('/api/analyze-hash', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ hash })
+                });
+                const data = await response.json();
+
+                // Show results section
+                document.getElementById('analysisResult').classList.remove('hidden');
+
+                // Update Hash Information
+                document.getElementById('hashValue').textContent = data.hashInfo.hash;
+                document.getElementById('hashType').textContent = data.hashInfo.type;
+                document.getElementById('hashLength').textContent = data.hashInfo.length;
+
+                // Update Analysis Summary
+                document.getElementById('hashStatus').textContent = data.analysisSummary.status;
+                document.getElementById('hashConfidence').textContent = data.analysisSummary.confidence + '%';
+                document.getElementById('hashFirstSeen').textContent = data.analysisSummary.firstSeen;
+
+                // Update Reputation Information
+                const reputationDiv = document.getElementById('reputationInfo');
+                reputationDiv.innerHTML = data.detailedAnalysis.reputation
+                    .map(source => `
+                        <div>
+                            <div class="text-gray-400">${source.name}</div>
+                            <div class="text-red-500">${source.status}</div>
+                        </div>
+                    `).join('');
+
+                // Update File Information
+                document.getElementById('fileType').textContent = data.detailedAnalysis.fileInfo.fileType;
+                document.getElementById('fileSize').textContent = data.detailedAnalysis.fileInfo.size;
+                document.getElementById('fileMagic').textContent = data.detailedAnalysis.fileInfo.magic;
+                document.getElementById('fileSSDeep').textContent = data.detailedAnalysis.fileInfo.ssDeep;
+
+                // Update Detection History
+                const historyBody = document.getElementById('detectionHistory');
+                historyBody.innerHTML = data.detailedAnalysis.detectionHistory
+                    .map(entry => `
+                        <tr>
+                            <td class="py-2">${entry.date}</td>
+                            <td class="py-2">${entry.scanner}</td>
+                            <td class="py-2 ${entry.result === 'Clean' ? 'text-green-500' : 'text-red-500'}">${entry.result}</td>
+                        </tr>
+                    `).join('');
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        function newAnalysis() {
+            document.getElementById('hashInput').value = '';
+            document.getElementById('analysisResult').classList.add('hidden');
+        }
+    </script>
+</body>
+</html> 

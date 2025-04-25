@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Scan Results</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-4xl mx-auto">
+            <h1 class="text-3xl font-bold mb-8">File Scan Results</h1>
+
+            <% if (results) { %>
+                <div class="bg-gray-800 rounded-lg p-6 shadow-lg">
+                    <!-- File Information -->
+                    <div class="mb-8">
+                        <h2 class="text-xl font-semibold mb-4 text-blue-400">File Information</h2>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="text-gray-400">File Name:</div>
+                            <div class="text-white"><%= results.name %></div>
+                            
+                            <div class="text-gray-400">Size:</div>
+                            <div class="text-white"><%= (results.size / 1024).toFixed(2) %> KB</div>
+                            
+                            <div class="text-gray-400">Type:</div>
+                            <div class="text-white"><%= results.type %></div>
+                            
+                            <div class="text-gray-400">Scan Date:</div>
+                            <div class="text-white"><%= new Date(results.timestamp).toLocaleString() %></div>
+                        </div>
+                    </div>
+
+                    <!-- Security Analysis -->
+                    <div class="mb-8">
+                        <h2 class="text-xl font-semibold mb-4 text-blue-400">Security Analysis</h2>
+                        
+                        <!-- Risk Score -->
+                        <div class="mb-6">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-gray-400">Risk Score:</span>
+                                <span class="text-2xl font-bold <%= results.securityAnalysis.riskScore > 70 ? 'text-red-500' : results.securityAnalysis.riskScore > 40 ? 'text-yellow-500' : 'text-green-500' %>">
+                                    <%= results.securityAnalysis.riskScore %>/100
+                                </span>
+                            </div>
+                            <div class="w-full bg-gray-700 rounded-full h-4">
+                                <div class="h-full rounded-full <%= results.securityAnalysis.riskScore > 70 ? 'bg-red-500' : results.securityAnalysis.riskScore > 40 ? 'bg-yellow-500' : 'bg-green-500' %>"
+                                     style="width: <%= results.securityAnalysis.riskScore %>%"></div>
+                            </div>
+                        </div>
+
+                        <!-- Severity Level -->
+                        <div class="mb-6">
+                            <div class="text-gray-400 mb-2">Severity Level:</div>
+                            <div class="inline-block px-4 py-2 rounded-full font-semibold <%= results.securityAnalysis.severity === 'High' ? 'bg-red-500/20 text-red-400 border border-red-500/50' : results.securityAnalysis.severity === 'Medium' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/50' : 'bg-green-500/20 text-green-400 border border-green-500/50' %>">
+                                <%= results.securityAnalysis.severity %>
+                            </div>
+                        </div>
+
+                        <!-- Threats -->
+                        <div>
+                            <div class="text-gray-400 mb-2">Detected Threats:</div>
+                            <% if (results.securityAnalysis.threats && results.securityAnalysis.threats.length > 0) { %>
+                                <div class="bg-red-900/20 border border-red-500/50 rounded-lg p-4">
+                                    <ul class="list-disc list-inside text-red-300 space-y-2">
+                                        <% results.securityAnalysis.threats.forEach(function(threat) { %>
+                                            <li><%= threat %></li>
+                                        <% }); %>
+                                    </ul>
+                                </div>
+                            <% } else { %>
+                                <div class="bg-green-900/20 border border-green-500/50 rounded-lg p-4">
+                                    <p class="text-green-400">No threats detected</p>
+                                </div>
+                            <% } %>
+                        </div>
+                    </div>
+
+                    <!-- File Hash -->
+                    <div class="mb-8">
+                        <h2 class="text-xl font-semibold mb-4 text-blue-400">File Hash</h2>
+                        <div class="bg-gray-900 p-4 rounded-lg">
+                            <p class="text-gray-300 font-mono break-all"><%= results.hash %></p>
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="flex justify-end space-x-4">
+                        <a href="/" class="px-6 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors">
+                            Scan Another File
+                        </a>
+                        <% if (user) { %>
+                            <button onclick="downloadReport()" class="px-6 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg transition-colors">
+                                Download Report
+                            </button>
+                        <% } %>
+                    </div>
+                </div>
+            <% } else { %>
+                <div class="bg-red-900/20 border border-red-500/50 rounded-lg p-6">
+                    <p class="text-red-400">No scan results found. Please try scanning your file again.</p>
+                    <a href="/" class="inline-block mt-4 px-6 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors">
+                        Return to Scanner
+                    </a>
+                </div>
+            <% } %>
+        </div>
+    </div>
+
+    <% if (user) { %>
+    <script>
+        function downloadReport() {
+            const results = <%- JSON.stringify(results) %>;
+            fetch('/export-pdf', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content
+                },
+                body: JSON.stringify({ analysisData: results })
+            })
+            .then(response => response.blob())
+            .then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `security-analysis-${Date.now()}.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                a.remove();
+            })
+            .catch(error => console.error('Error downloading report:', error));
+        }
+    </script>
+    <% } %>
+</body>
+</html> 

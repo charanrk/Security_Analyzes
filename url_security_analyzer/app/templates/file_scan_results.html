@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block title %}File Scan Results{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="mb-6 flex items-center justify-between">
+        <h1 class="text-3xl font-bold text-gray-900">File Scan Results</h1>
+        <a href="{{ url_for('main.index') }}" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">
+            Scan Another File
+        </a>
+    </div>
+
+    <div class="bg-white shadow rounded-lg p-6">
+        <!-- File Information -->
+        <div class="mb-6 border-b border-gray-200 pb-4">
+            <h2 class="text-xl font-semibold mb-4">File Information</h2>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <p class="text-sm text-gray-600">Filename</p>
+                    <p class="font-medium">{{ results.filename }}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-600">File Size</p>
+                    <p class="font-medium">{{ (results.filesize / 1024 / 1024) | round(2) }} MB</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-600">Scan Time</p>
+                    <p class="font-medium">{{ results.timestamp }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scan Results -->
+        <div>
+            <h2 class="text-xl font-semibold mb-4">Security Analysis</h2>
+            
+            <!-- Risk Score -->
+            {% set risk_score = results.scan_results.securityAnalysis.riskScore %}
+            <div class="mb-6">
+                <h3 class="text-lg font-medium mb-2">Risk Score</h3>
+                <div class="w-full bg-gray-200 rounded-full h-2.5 mb-2">
+                    <div class="h-2.5 rounded-full 
+                        {% if risk_score < 30 %}bg-green-500
+                        {% elif risk_score < 70 %}bg-yellow-500
+                        {% else %}bg-red-500{% endif %}"
+                        style="width: {{ risk_score }}%">
+                    </div>
+                </div>
+                <p class="text-sm text-gray-600">
+                    Score: {{ risk_score }}/100 
+                    {% if risk_score < 30 %}(Low Risk)
+                    {% elif risk_score < 70 %}(Medium Risk)
+                    {% else %}(High Risk){% endif %}
+                </p>
+            </div>
+
+            <!-- Malware Pattern Detections -->
+            {% if results.scan_results.securityAnalysis.malwarePatterns %}
+            <div class="mb-6">
+                <h3 class="text-lg font-medium mb-2">Detected Patterns</h3>
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <ul class="space-y-2">
+                    {% for pattern, count in results.scan_results.securityAnalysis.malwarePatterns.items() %}
+                        <li class="flex items-center text-red-600">
+                            <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                            </svg>
+                            <span class="font-medium">{{ pattern }}:</span>
+                            <span class="ml-2">{{ count }} occurrence(s)</span>
+                        </li>
+                    {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- File Reputation -->
+            <div class="mb-6">
+                <h3 class="text-lg font-medium mb-2">File Reputation</h3>
+                <div class="bg-gray-50 rounded-lg p-4">
+                    {% set reputation = results.scan_results.securityAnalysis.reputation %}
+                    <div class="flex items-center">
+                        <div class="rounded-full w-3 h-3 mr-2
+                            {% if reputation.status == 'clean' %}bg-green-500
+                            {% elif reputation.status == 'unknown' %}bg-yellow-500
+                            {% else %}bg-red-500{% endif %}">
+                        </div>
+                        <span class="font-medium capitalize">{{ reputation.status }}</span>
+                        {% if reputation.confidence > 0 %}
+                        <span class="ml-2 text-sm text-gray-600">
+                            ({{ reputation.confidence | round(2) }}% confidence)
+                        </span>
+                        {% endif %}
+                    </div>
+                    {% if reputation.sources %}
+                    <div class="mt-2 text-sm text-gray-600">
+                        Sources: {{ reputation.sources | length }} reputation service(s) checked
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Raw Results -->
+            <div class="mt-6">
+                <button onclick="toggleRawResults()" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                    Show Raw Results
+                </button>
+                <pre id="rawResults" class="hidden mt-2 bg-gray-50 p-4 rounded-lg overflow-x-auto text-sm">
+                    {{- results.scan_results | tojson(indent=2) -}}
+                </pre>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function toggleRawResults() {
+    const rawResults = document.getElementById('rawResults');
+    rawResults.classList.toggle('hidden');
+}
+</script>
+{% endblock %} 

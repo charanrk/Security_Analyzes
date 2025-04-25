@@ -1,0 +1,17 @@
+<nav class="bg-gray-900 text-white py-4 px-6 flex justify-between items-center">
+    <div class="flex items-center">
+        <a href="/" class="text-xl font-bold">Security Analysis Tool</a>
+    </div>
+    <div class="flex items-center space-x-4">
+        <% if (typeof user !== 'undefined' && user) { %>
+            <span class="text-gray-400">Welcome, <%= user.email %></span>
+            <a href="/dashboard" class="text-blue-400 hover:text-blue-300">Dashboard</a>
+            <form action="/logout" method="GET" class="inline">
+                <button type="submit" class="text-blue-400 hover:text-blue-300">Sign Out</button>
+            </form>
+        <% } else { %>
+            <a href="/login" class="text-blue-400 hover:text-blue-300">Sign In</a>
+            <a href="/register" class="text-blue-400 hover:text-blue-300">Register</a>
+        <% } %>
+    </div>
+</nav> 

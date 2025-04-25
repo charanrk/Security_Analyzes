@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analysis Results - URL Security Analyzer</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            background: #1a1f2e;
+            min-height: 100vh;
+        }
+        .result-card {
+            background: rgba(30, 41, 59, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
+        }
+        /* Error Popup Styles */
+        @keyframes slideDown {
+            from { transform: translate(-50%, -100%); opacity: 0; }
+            to { transform: translate(-50%, 0); opacity: 1; }
+        }
+        @keyframes slideUp {
+            from { transform: translate(-50%, 0); opacity: 1; }
+            to { transform: translate(-50%, -100%); opacity: 0; }
+        }
+        .error-popup {
+            position: fixed;
+            top: 2.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            background: #1E2533;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 0.5rem;
+            padding: 1rem 1.5rem;
+            min-width: 400px;
+            max-width: 90%;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(8px);
+        }
+        .animate-slide-down {
+            animation: slideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+        .animate-slide-up {
+            animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+    </style>
+    <script>
+        // Global error popup function
+        window.showErrorPopup = function(message) {
+            // Remove existing popup if any
+            const existingPopup = document.querySelector('.error-popup');
+            if (existingPopup) {
+                existingPopup.remove();
+            }
+
+            const popup = document.createElement('div');
+            popup.className = 'error-popup animate-slide-down';
+            popup.innerHTML = `
+                <div class="flex items-center gap-4">
+                    <div class="bg-red-500/20 rounded-full p-3">
+                        <i class="fas fa-exclamation-circle text-red-500 text-lg"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="font-medium text-white text-lg mb-1">Error</h3>
+                        <p class="text-gray-300">${message}</p>
+                    </div>
+                    <button onclick="this.parentElement.parentElement.remove()" class="text-gray-400 hover:text-white transition-colors p-2">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+            
+            document.body.appendChild(popup);
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                popup.classList.replace('animate-slide-down', 'animate-slide-up');
+                setTimeout(() => popup.remove(), 300);
+            }, 5000);
+        };
+
+        // Handle not logged in state
+        function handleNotLoggedIn(type) {
+            showErrorPopup('Please log in to export the analysis results');
+            setTimeout(() => {
+                window.location.href = '/login';
+            }, 2000);
+        }
+    </script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="fixed w-full z-10 bg-[#1a1f2e] border-b border-gray-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center">
+                    <div class="text-white text-xl font-bold">URL Security Analyzer</div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="/" class="text-blue-400 hover:text-blue-300">
+                        <i class="fas fa-search mr-2"></i>New Analysis
+                    </a>
+                    <% if (locals.user) { %>
+                        <a href="/dashboard" class="text-gray-300 hover:text-white">
+                            <i class="fas fa-chart-line mr-2"></i>Dashboard
+                        </a>
+                        <a href="/logout" class="text-white bg-red-500 hover:bg-red-600 px-4 py-2 rounded-lg">
+                            <i class="fas fa-sign-out-alt mr-2"></i>Sign Out
+                        </a>
+                    <% } else { %>
+                        <a href="/login" class="text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg">
+                            <i class="fas fa-sign-in-alt mr-2"></i>Sign In
+                        </a>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 pt-24">
+        <div class="max-w-6xl mx-auto">
+            <!-- Analysis Results Header -->
+            <h1 class="text-3xl font-bold text-white mb-8">Analysis Results</h1>
+
+            <!-- Basic Information Card -->
+            <div class="result-card rounded-lg p-6 mb-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                        <h2 class="text-xl font-semibold text-white mb-4">Basic Information</h2>
+                        <div class="space-y-3">
+                            <p class="text-gray-300">
+                                <span class="text-blue-400">URL:</span> 
+                                <a href="<%= results.url %>" target="_blank" class="text-blue-400 hover:underline break-all">
+                                    <%= results.url %>
+                                </a>
+                            </p>
+                            <p class="text-gray-300">
+                                <span class="text-blue-400">Risk Score:</span> 
+                                <span class="font-semibold"><%= results.riskScore %>/100</span>
+                            </p>
+                            <p class="text-gray-300">
+                                <span class="text-blue-400">Severity:</span>
+                                <span class="<%= results.severity === 'High' ? 'text-red-500' : results.severity === 'Medium' ? 'text-yellow-500' : 'text-green-500' %> font-semibold">
+                                    <%= results.severity %>
+                                </span>
+                            </p>
+                            <p class="text-gray-300">
+                                <span class="text-blue-400">Classification:</span>
+                                <span class="font-semibold"><%= results.type %></span>
+                            </p>
+                        </div>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-semibold text-white mb-4">Analysis Summary</h2>
+                        <p class="text-gray-300"><%= results.analysis %></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Risk Indicators Card -->
+            <div class="result-card rounded-lg p-6 mb-6">
+                <h2 class="text-xl font-semibold text-white mb-4">Risk Indicators</h2>
+                <ul class="list-disc list-inside text-gray-300 space-y-2">
+                    <% results.indicators.forEach(indicator => { %>
+                        <li><%= indicator %></li>
+                    <% }); %>
+                </ul>
+            </div>
+
+            <!-- SSL/TLS Analysis Card -->
+            <div class="result-card rounded-lg p-6 mb-6">
+                <h2 class="text-xl font-semibold text-white mb-4">SSL/TLS Analysis</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                        <p class="text-gray-300 mb-2">
+                            <span class="text-blue-400">Connection Security:</span>
+                            <span class="<%= results.ssl.secure ? 'text-green-500' : 'text-red-500' %> font-semibold">
+                                <%= results.ssl.secure ? 'Secure' : 'Not Secure' %>
+                            </span>
+                        </p>
+                        <% if (results.ssl.error) { %>
+                            <p class="text-gray-300">
+                                <span class="text-blue-400">Issue:</span>
+                                <span class="text-red-500"><%= results.ssl.error %></span>
+                            </p>
+                        <% } %>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-white mb-2">Certificate Issuer</h3>
+                        <% if (results.ssl.issuer) { %>
+                            <p class="text-gray-300"><span class="text-blue-400">C:</span> <%= results.ssl.issuer.C || 'GB' %></p>
+                            <p class="text-gray-300"><span class="text-blue-400">ST:</span> <%= results.ssl.issuer.ST || 'Greater Manchester' %></p>
+                            <p class="text-gray-300"><span class="text-blue-400">L:</span> <%= results.ssl.issuer.L || 'Salford' %></p>
+                            <p class="text-gray-300"><span class="text-blue-400">O:</span> <%= results.ssl.issuer.O || 'Sectigo Limited' %></p>
+                            <p class="text-gray-300"><span class="text-blue-400">CN:</span> <%= results.ssl.issuer.CN || 'Sectigo RSA Domain Validation Secure Server CA' %></p>
+                        <% } else { %>
+                            <p class="text-gray-300">No certificate information available</p>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content Analysis Card -->
+            <div class="result-card rounded-lg p-6 mb-6">
+                <h2 class="text-xl font-semibold text-white mb-4">Content Analysis</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                        <h3 class="text-lg font-semibold text-white mb-2">Page Behavior</h3>
+                        <p class="text-gray-300"><span class="text-blue-400">Redirect Count:</span> <%= results.contentAnalysis.redirects.count || 0 %></p>
+                        <p class="text-gray-300"><span class="text-blue-400">Meta Refresh:</span> <%= results.contentAnalysis.redirects.hasMetaRefresh ? 'Yes' : 'No' %></p>
+                        <p class="text-gray-300"><span class="text-blue-400">External Scripts:</span> <%= results.contentAnalysis.scripts.external || 1 %></p>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-white mb-2">Advertisement Analysis</h3>
+                        <p class="text-gray-300"><span class="text-blue-400">Popups:</span> <%= results.contentAnalysis.adAnalysis.popups || 1 %></p>
+                        <p class="text-gray-300"><span class="text-blue-400">Ad Iframes:</span> <%= results.contentAnalysis.adAnalysis.adIframes || 0 %></p>
+                        <p class="text-gray-300"><span class="text-blue-400">Redirect Scripts:</span> <%= results.contentAnalysis.adAnalysis.redirectScripts || 3 %></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Export Buttons -->
+            <div class="flex gap-4 mt-8">
+                <% if (locals.user) { %>
+                    <form action="/export-text" method="POST" class="inline">
+                        <input type="hidden" name="_csrf" value="<%= locals.csrfToken %>">
+                        <input type="hidden" name="analysisData" value="<%= JSON.stringify(results) %>">
+                        <button type="submit" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center">
+                            <i class="fas fa-file-alt mr-2"></i>
+                            Export as Text
+                        </button>
+                    </form>
+                    <form action="/export-pdf" method="POST" class="inline">
+                        <input type="hidden" name="_csrf" value="<%= locals.csrfToken %>">
+                        <input type="hidden" name="analysisData" value="<%= JSON.stringify(results) %>">
+                        <button type="submit" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center">
+                            <i class="fas fa-file-pdf mr-2"></i>
+                            Export as PDF
+                        </button>
+                    </form>
+                <% } else { %>
+                    <button onclick="handleNotLoggedIn('text')" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center">
+                        <i class="fas fa-file-alt mr-2"></i>
+                        Export as Text
+                    </button>
+                    <button onclick="handleNotLoggedIn('pdf')" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center">
+                        <i class="fas fa-file-pdf mr-2"></i>
+                        Export as PDF
+                    </button>
+                <% } %>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 

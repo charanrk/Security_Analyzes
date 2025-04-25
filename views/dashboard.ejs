@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - URL Security Analyzer</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            background: #0F172A;
+            min-height: 100vh;
+        }
+        .glass-effect {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .search-item {
+            background: rgba(30, 41, 59, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.2s;
+        }
+        .search-item:hover {
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="fixed w-full z-10 bg-[#1a1f2e] border-b border-gray-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center">
+                    <a href="/" class="text-white text-xl font-bold">URL Security Analyzer</a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-gray-300">Welcome, <%= user.email %></span>
+                    <a href="/logout" class="text-white bg-red-500 hover:bg-red-600 px-4 py-2 rounded-lg">
+                        <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 pt-24">
+        <div class="max-w-6xl mx-auto">
+            <div class="glass-effect rounded-xl p-8 mb-8">
+                <h1 class="text-3xl font-bold text-white mb-2">Dashboard</h1>
+                <p class="text-gray-400">View your recent search history and analysis results</p>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="glass-effect rounded-xl p-8">
+                <h2 class="text-2xl font-bold text-white mb-6">Recent Activity</h2>
+                <% if (searchHistory && searchHistory.length > 0) { %>
+                    <div class="grid gap-6">
+                        <% searchHistory.forEach(search => { %>
+                            <div class="search-item rounded-lg p-6">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <h3 class="text-xl text-white font-semibold mb-2"><%= search.url %></h3>
+                                        <p class="text-gray-400 mb-4"><%= search.analysis %></p>
+                                        <div class="flex items-center space-x-4">
+                                            <span class="text-sm text-gray-500">
+                                                <i class="far fa-clock mr-2"></i>
+                                                <%= new Date(search.timestamp).toLocaleString() %>
+                                            </span>
+                                            <span class="text-sm px-3 py-1 rounded-full <%= search.severity.toLowerCase() === 'high' ? 'bg-red-500' : search.severity.toLowerCase() === 'medium' ? 'bg-yellow-500' : 'bg-green-500' %> text-white">
+                                                <%= search.severity %>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <a href="/analyze?url=<%= encodeURIComponent(search.url) %>" class="text-blue-400 hover:text-blue-300">
+                                        <i class="fas fa-external-link-alt"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        <% }); %>
+                    </div>
+                <% } else { %>
+                    <div class="text-center py-12">
+                        <div class="text-gray-400 mb-4">
+                            <i class="fas fa-search text-4xl mb-4"></i>
+                            <p>No search history yet</p>
+                        </div>
+                        <a href="/" class="inline-block bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors">
+                            Start Analyzing URLs
+                        </a>
+                    </div>
+                <% } %>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 

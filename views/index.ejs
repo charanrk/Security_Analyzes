@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="<%= csrfToken %>">
+    <title>Security Analysis Tool</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            background: #1a1f2e;
+            min-height: 100vh;
+        }
+        .analysis-card {
+            background: rgba(30, 41, 59, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(8px);
+        }
+        .tab-btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-medium: 500;
+            transition: all 0.2s;
+        }
+        .tab-active {
+            background: #3B82F6;
+            color: white;
+        }
+        .tab-inactive {
+            background: rgba(55, 65, 81, 0.5);
+            color: #94a3b8;
+        }
+        .tab-inactive:hover {
+            background: #3B82F6;
+            color: white;
+        }
+        .form-radio {
+            appearance: none;
+            width: 1.2em;
+            height: 1.2em;
+            border: 2px solid #3B82F6;
+            border-radius: 50%;
+            outline: none;
+            cursor: pointer;
+            position: relative;
+        }
+        .form-radio:checked {
+            background-color: #3B82F6;
+        }
+        .form-radio:checked::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 0.4em;
+            height: 0.4em;
+            border-radius: 50%;
+            background-color: white;
+        }
+    </style>
+</head>
+<body class="text-gray-100">
+    <!-- Navigation Bar -->
+    <nav class="bg-gray-900 text-white py-4 px-6 flex justify-between items-center">
+        <div class="flex items-center">
+            <div class="text-xl font-bold">Security Analysis Tool</div>
+        </div>
+        <div class="flex items-center space-x-4">
+            <% if (user) { %>
+                <a href="/" class="text-blue-400 hover:text-blue-300">New Analysis</a>
+                <a href="/logout" class="text-blue-400 hover:text-blue-300">Sign Out</a>
+            <% } else { %>
+                <a href="/login" class="text-blue-400 hover:text-blue-300">Sign In</a>
+                <a href="/register" class="text-blue-400 hover:text-blue-300">Sign Up</a>
+            <% } %>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-4xl mx-auto px-4 py-8">
+        <!-- Registration Success Message -->
+        <% if (typeof registered !== 'undefined' && registered === true) { %>
+            <div class="bg-green-500/10 border border-green-500/20 rounded-lg p-4 mb-8 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="bg-green-500/20 rounded-full p-2">
+                        <i class="fas fa-check text-green-500"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-medium text-green-500">Registration Successful!</h3>
+                        <p class="text-green-400/80 text-sm">Welcome to Security Analysis Tool. You're now logged in.</p>
+                    </div>
+                </div>
+                <button onclick="this.parentElement.remove()" class="text-green-500/50 hover:text-green-500">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        <% } %>
+
+        <!-- Tab Navigation -->
+        <div class="flex justify-center space-x-4 mb-8">
+            <button id="urlAnalysisBtn" 
+                    onclick="switchTab('url')" 
+                    class="tab-btn tab-active">
+                <i class="fas fa-link mr-2"></i>URL Analysis
+            </button>
+            <button id="hashAnalysisBtn" 
+                    onclick="switchTab('hash')" 
+                    class="tab-btn tab-inactive">
+                <i class="fas fa-hashtag mr-2"></i>Hash Checker
+            </button>
+            <button id="fileScannerBtn" 
+                    onclick="switchTab('file')" 
+                    class="tab-btn tab-inactive">
+                <i class="fas fa-file-alt mr-2"></i>File Scanner
+            </button>
+        </div>
+
+        <!-- URL Analysis Section -->
+        <div id="urlAnalysisSection" class="bg-gray-900 p-8 rounded-lg max-w-3xl mx-auto mb-8">
+            <h2 class="text-xl font-semibold mb-4 text-white">URL Security Analysis</h2>
+            <form action="/analyze" method="POST" class="space-y-4">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Enter URL to analyze</label>
+                    <div class="flex gap-4">
+                        <input type="url" name="url" required
+                            class="flex-1 bg-gray-800 text-white border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500 placeholder-gray-500"
+                            placeholder="https://example.com">
+                        <button type="submit"
+                            class="bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-lg font-medium transition-colors text-white">
+                            Analyze
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Hash Checker Section -->
+        <div id="hashCheckerSection" class="bg-gray-900 p-8 rounded-lg max-w-3xl mx-auto mb-8 hidden">
+            <h2 class="text-xl font-semibold mb-4 text-white">Hash Checker</h2>
+            <form id="hashForm" action="/analyze-hash" method="POST" class="space-y-4">
+                <input type="hidden" name="_csrf" value="<%= locals.csrfToken %>">
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Enter hash to analyze</label>
+                    <div class="flex gap-4">
+                        <input 
+                            type="text" 
+                            id="hashInput" 
+                            name="hash" 
+                            class="flex-1 bg-gray-800 text-white border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500 placeholder-gray-500"
+                            required
+                            oninput="detectHashType(this.value)"
+                        >
+                        <button 
+                            type="submit"
+                            class="bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-lg font-medium transition-colors text-white"
+                        >
+                            Check Hash
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex gap-6">
+                    <label class="inline-flex items-center">
+                        <input type="radio" name="hashType" value="md5" id="md5Radio" class="form-radio text-blue-500">
+                        <span class="ml-2 text-gray-300">MD5</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                        <input type="radio" name="hashType" value="sha1" id="sha1Radio" class="form-radio text-blue-500">
+                        <span class="ml-2 text-gray-300">SHA-1</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                        <input type="radio" name="hashType" value="sha256" id="sha256Radio" class="form-radio text-blue-500">
+                        <span class="ml-2 text-gray-300">SHA-256</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                        <input type="radio" name="hashType" value="sha512" id="sha512Radio" class="form-radio text-blue-500">
+                        <span class="ml-2 text-gray-300">SHA-512</span>
+                    </label>
+                </div>
+                <p id="hashInfo" class="text-sm text-green-500"></p>
+            </form>
+        </div>
+
+        <!-- File Scanner Section -->
+        <div id="fileScannerSection" class="hidden">
+            <div id="file-scanner" class="w-full max-w-4xl mx-auto p-6 bg-gray-900 rounded-lg shadow-lg">
+                <h2 class="text-2xl font-bold text-white mb-6">File Security Scanner</h2>
+                
+                <!-- Error Display -->
+                <div id="fileError" class="hidden mb-4"></div>
+                
+                <!-- File Upload Form -->
+                <form id="file-scan-form" class="space-y-6">
+                    <!-- Drop Zone -->
+                    <div class="relative border-2 border-dashed border-gray-600 rounded-lg p-8 text-center hover:border-blue-500 transition-colors duration-200">
+                        <label for="file-input" class="cursor-pointer">
+                            <div class="space-y-4">
+                                <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                                    <path d="M28 8H12a4 4 0 00-4 4v20m0 0v4a4 4 0 004 4h24a4 4 0 004-4V16a4 4 0 00-4-4h-8m-20 20l5-5m0 0l5 5m-5-5v12" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                <p class="text-gray-300">Click to upload or drag and drop</p>
+                                <p class="text-sm text-gray-500">Supported files: PDF, DOC, DOCX, TXT, JSON, HTML, Images</p>
+                                <p class="text-sm text-gray-500">Maximum size: 50MB</p>
+                            </div>
+                        </label>
+                        <input type="file" id="file-input" name="file" class="hidden" accept=".pdf,.doc,.docx,.txt,.json,.html,image/*" />
+                    </div>
+
+                    <!-- File Preview -->
+                    <div id="file-preview" class="hidden">
+                        <div class="bg-gray-800 rounded-lg p-4">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <p id="preview-file-name" class="text-white font-medium"></p>
+                                    <p id="preview-file-size" class="text-sm text-gray-400"></p>
+                                </div>
+                                <button type="button" id="clear-file-btn" class="text-gray-400 hover:text-red-400">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Upload Status -->
+                    <div id="upload-status" class="hidden text-blue-400 text-center"></div>
+
+                    <!-- Scan Button -->
+                    <div class="flex justify-center">
+                        <button type="submit" id="scan-button" class="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200" disabled>
+                            Scan File
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Scan Results -->
+                <div id="scan-results" class="hidden mt-6"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Include the file upload handling script -->
+    <script src="/js/fileUpload.js"></script>
+
+    <script>
+        // Store active tab in session storage
+        let activeTab = sessionStorage.getItem('activeTab') || 'url';
+        
+        function switchTab(tab) {
+            // Update session storage
+            sessionStorage.setItem('activeTab', tab);
+            activeTab = tab;
+            
+            // Update button styles
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('tab-active', 'tab-inactive');
+                btn.classList.add(btn.id === `${tab}${tab === 'file' ? 'Scanner' : 'Analysis'}Btn` ? 'tab-active' : 'tab-inactive');
+            });
+            
+            // Show/hide sections
+            const sections = {
+                'url': 'urlAnalysisSection',
+                'hash': 'hashCheckerSection',
+                'file': 'fileScannerSection'
+            };
+            
+            // Hide all sections
+            Object.values(sections).forEach(sectionId => {
+                document.getElementById(sectionId)?.classList.add('hidden');
+            });
+            
+            // Show active section
+            const activeSection = document.getElementById(sections[tab]);
+            if (activeSection) {
+                activeSection.classList.remove('hidden');
+            }
+        }
+        
+        // Initialize the active tab on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            const activeTab = sessionStorage.getItem('activeTab') || 'url';
+            switchTab(activeTab);
+            setupHashChecker();
+            setupFileScanner();
+        });
+
+        function detectHashType(hash) {
+            // Remove any whitespace
+            hash = hash.trim();
+            
+            // Hash pattern definitions
+            const hashPatterns = {
+                'MD5': /^[a-fA-F0-9]{32}$/,
+                'SHA-1': /^[a-fA-F0-9]{40}$/,
+                'SHA-256': /^[a-fA-F0-9]{64}$/,
+                'SHA-512': /^[a-fA-F0-9]{128}$/
+            };
+
+            // Reset radio buttons
+            document.getElementById('md5Radio').checked = false;
+            document.getElementById('sha1Radio').checked = false;
+            document.getElementById('sha256Radio').checked = false;
+            document.getElementById('sha512Radio').checked = false;
+
+            const hashInfo = document.getElementById('hashInfo');
+            
+            // If hash is empty
+            if (!hash) {
+                hashInfo.textContent = '';
+                return;
+            }
+
+            // Check if it's a valid hex string
+            if (!/^[a-fA-F0-9]*$/.test(hash)) {
+                hashInfo.textContent = 'Invalid hash format - must contain only hexadecimal characters';
+                hashInfo.className = 'text-sm text-red-500 mt-2';
+                return;
+            }
+
+            // Find matching hash type
+            let detectedType = null;
+            for (const [type, pattern] of Object.entries(hashPatterns)) {
+                if (pattern.test(hash)) {
+                    detectedType = type;
+                    break;
+                }
+            }
+
+            // Update UI based on detected type
+            if (detectedType) {
+                hashInfo.textContent = `Detected: ${detectedType}`;
+                hashInfo.className = 'text-sm text-green-500 mt-2';
+
+                // Auto-select radio button
+                switch (detectedType) {
+                    case 'MD5':
+                    document.getElementById('md5Radio').checked = true;
+                        break;
+                    case 'SHA-1':
+                    document.getElementById('sha1Radio').checked = true;
+                        break;
+                    case 'SHA-256':
+                    document.getElementById('sha256Radio').checked = true;
+                        break;
+                    case 'SHA-512':
+                    document.getElementById('sha512Radio').checked = true;
+                        break;
+                }
+            } else {
+                hashInfo.textContent = `Length: ${hash.length} - No matching hash type found`;
+                hashInfo.className = 'text-sm text-yellow-500 mt-2';
+            }
+        }
+
+        function setupFileScanner() {
+            const fileScanForm = document.getElementById('file-scan-form');
+            const fileInput = document.getElementById('file-input');
+            const filePreview = document.getElementById('file-preview');
+            const fileName = document.getElementById('preview-file-name');
+            const fileSize = document.getElementById('preview-file-size');
+            const clearFileBtn = document.getElementById('clear-file-btn');
+            const scanButton = document.getElementById('scan-button');
+            const uploadStatus = document.getElementById('upload-status');
+            const fileError = document.getElementById('fileError');
+            const scanResults = document.getElementById('scan-results');
+
+            // Initially disable scan button
+            if (scanButton) {
+                scanButton.disabled = true;
+            }
+
+            // File input change handler
+            if (fileInput) {
+                fileInput.addEventListener('change', handleFileSelection);
+            }
+
+            // Form submit handler
+            if (fileScanForm) {
+                fileScanForm.addEventListener('submit', handleFormSubmit);
+            }
+
+            // Clear file button handler
+            if (clearFileBtn) {
+                clearFileBtn.addEventListener('click', resetFileInput);
+            }
+
+            // Drag and drop handlers
+            const dropZone = document.querySelector('label[for="file-input"]');
+            if (dropZone) {
+                ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                    dropZone.addEventListener(eventName, preventDefaults);
+                });
+
+                ['dragenter', 'dragover'].forEach(eventName => {
+                    dropZone.addEventListener(eventName, highlight);
+                });
+
+                ['dragleave', 'drop'].forEach(eventName => {
+                    dropZone.addEventListener(eventName, unhighlight);
+                });
+
+                dropZone.addEventListener('drop', handleDrop);
+            }
+
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            function highlight() {
+                dropZone.classList.add('border-blue-500', 'bg-gray-800');
+            }
+
+            function unhighlight() {
+                dropZone.classList.remove('border-blue-500', 'bg-gray-800');
+            }
+
+            function handleDrop(e) {
+                const dt = e.dataTransfer;
+                if (dt.files && dt.files.length > 0) {
+                    fileInput.files = dt.files;
+                    handleFileSelection();
+                }
+            }
+
+            function handleFileSelection() {
+                if (!fileInput.files || !fileInput.files[0]) {
+                    resetFileInput();
+                    return;
+                }
+
+                const file = fileInput.files[0];
+                if (validateFile(file)) {
+                    showFilePreview(file);
+                    if (scanButton) scanButton.disabled = false;
+                } else {
+                    resetFileInput();
+                }
+            }
+
+            function validateFile(file) {
+                const maxSize = 50 * 1024 * 1024; // 50MB
+                const allowedTypes = [
+                    'application/pdf',
+                    'application/msword',
+                    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                    'text/plain',
+                    'application/json',
+                    'text/html',
+                    'image/jpeg',
+                    'image/png',
+                    'image/gif'
+                ];
+
+                if (file.size > maxSize) {
+                    showError(`File size exceeds 50MB limit (${formatFileSize(file.size)})`);
+                    return false;
+                }
+
+                if (!allowedTypes.includes(file.type)) {
+                    showError('Invalid file type. Please upload a PDF, Word document, text file, JSON, HTML, or image file.');
+                    return false;
+                }
+
+                return true;
+            }
+
+            function showFilePreview(file) {
+                if (fileName) fileName.textContent = file.name;
+                if (fileSize) fileSize.textContent = formatFileSize(file.size);
+                if (filePreview) filePreview.classList.remove('hidden');
+            }
+
+            function resetFileInput() {
+                if (fileInput) fileInput.value = '';
+                if (filePreview) filePreview.classList.add('hidden');
+                if (scanButton) scanButton.disabled = true;
+                hideError();
+            }
+
+            async function handleFormSubmit(e) {
+                e.preventDefault();
+
+                if (!fileInput || !fileInput.files || !fileInput.files[0]) {
+                    showError('Please select a file first');
+                    return;
+                }
+
+                const file = fileInput.files[0];
+                const formData = new FormData();
+                formData.append('file', file);
+
+                try {
+                    hideError();
+                    showUploadStatus('Scanning file...');
+                    if (scanButton) scanButton.disabled = true;
+
+                    const response = await fetch('/scan-file', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const data = await response.json();
+
+                    if (!response.ok) {
+                        throw new Error(data.error || 'Error scanning file');
+                    }
+
+                    // Extract results from the response
+                    const scanResults = data.results || data;
+                    
+                    // Format the data for display
+                    const formattedResults = {
+                        name: scanResults.name || file.name,
+                        size: scanResults.size || file.size,
+                        sizeFormatted: formatFileSize(scanResults.size || file.size),
+                        type: scanResults.type || file.type,
+                        riskScore: typeof scanResults.riskScore === 'number' ? scanResults.riskScore : 0,
+                        riskLevel: getRiskLevel(scanResults.riskScore || 0),
+                        threats: Array.isArray(scanResults.threats) ? scanResults.threats : [],
+                        scanDuration: 'Completed',
+                        timestamp: scanResults.timestamp || new Date().toISOString(),
+                        hash: scanResults.hash || ''
+                    };
+
+                    displayScanResults(formattedResults);
+                } catch (error) {
+                    console.error('File scan error:', error);
+                    showError(error.message || 'Error scanning file. Please try again.');
+                } finally {
+                    hideUploadStatus();
+                    if (scanButton) scanButton.disabled = false;
+                }
+            }
+
+            function getRiskLevel(score) {
+                if (score <= 30) return 'Low Risk';
+                if (score <= 70) return 'Medium Risk';
+                return 'High Risk';
+            }
+
+            function showError(message) {
+                if (fileError) {
+                    fileError.innerHTML = `
+                        <div class="bg-red-900/20 border border-red-500/50 rounded-lg p-4">
+                            <div class="flex items-center">
+                                <svg class="w-5 h-5 text-red-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                <span class="text-red-400">${message}</span>
+                            </div>
+                        </div>
+                    `;
+                    fileError.classList.remove('hidden');
+                }
+            }
+
+            function hideError() {
+                if (fileError) {
+                    fileError.classList.add('hidden');
+                    fileError.innerHTML = '';
+                }
+            }
+
+            function showUploadStatus(message) {
+                if (uploadStatus) {
+                    uploadStatus.innerHTML = `
+                        <div class="flex items-center justify-center space-x-3">
+                            <div class="animate-spin rounded-full h-5 w-5 border-2 border-blue-500 border-t-transparent"></div>
+                            <span>${message}</span>
+                        </div>
+                    `;
+                    uploadStatus.classList.remove('hidden');
+                }
+            }
+
+            function hideUploadStatus() {
+                if (uploadStatus) {
+                    uploadStatus.classList.add('hidden');
+                    uploadStatus.innerHTML = '';
+                }
+            }
+
+            function formatFileSize(bytes) {
+                if (bytes === 0) return '0 Bytes';
+                const k = 1024;
+                const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            }
+
+            function displayScanResults(results) {
+                if (!scanResults || !results) {
+                    console.error('Invalid scan results or missing element');
+                    return;
+                }
+
+                const riskColor = results.riskScore <= 30 ? 'green' : results.riskScore <= 70 ? 'yellow' : 'red';
+                
+                scanResults.innerHTML = `
+                    <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
+                        <h3 class="text-xl font-bold text-white mb-4">Scan Results</h3>
+                        
+                        <!-- Risk Score -->
+                        <div class="mb-6">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-gray-300">Risk Level:</span>
+                                <span class="text-${riskColor}-500 font-bold">${results.riskLevel} (${results.riskScore}%)</span>
+                            </div>
+                            <div class="w-full h-2 bg-gray-700 rounded-full">
+                                <div class="h-full rounded-full bg-${riskColor}-500 transition-all duration-500" 
+                                     style="width: ${results.riskScore}%"></div>
+                            </div>
+                        </div>
+
+                        <!-- File Details -->
+                        <div class="grid grid-cols-2 gap-4 mb-6">
+                            <div class="text-gray-300">
+                                <span class="font-medium">File Name:</span>
+                                <div class="text-white">${results.name}</div>
+                            </div>
+                            <div class="text-gray-300">
+                                <span class="font-medium">Size:</span>
+                                <div class="text-white">${results.sizeFormatted}</div>
+                            </div>
+                            <div class="text-gray-300">
+                                <span class="font-medium">Type:</span>
+                                <div class="text-white">${results.type}</div>
+                            </div>
+                            <div class="text-gray-300">
+                                <span class="font-medium">Hash:</span>
+                                <div class="text-white text-sm font-mono break-all">${results.hash}</div>
+                            </div>
+                        </div>
+
+                        <!-- Scan Details -->
+                        <div class="grid grid-cols-2 gap-4 mb-6">
+                            <div class="text-gray-300">
+                                <span class="font-medium">Scan Status:</span>
+                                <div class="text-white">${results.scanDuration}</div>
+                            </div>
+                            <div class="text-gray-300">
+                                <span class="font-medium">Timestamp:</span>
+                                <div class="text-white">${new Date(results.timestamp).toLocaleString()}</div>
+                            </div>
+                        </div>
+
+                        <!-- Threats Section -->
+                        ${results.threats.length > 0 ? `
+                            <div class="bg-red-900/20 border border-red-500/50 rounded-lg p-4">
+                                <h4 class="text-lg font-semibold text-red-400 mb-2">Detected Threats:</h4>
+                                <ul class="list-disc list-inside space-y-1">
+                                    ${results.threats.map(threat => `
+                                        <li class="text-red-300">${threat}</li>
+                                    `).join('')}
+                                </ul>
+                            </div>
+                        ` : `
+                            <div class="bg-green-900/20 border border-green-500/50 rounded-lg p-4">
+                                <div class="flex items-center">
+                                    <svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    <span class="text-green-400 font-medium">No threats detected</span>
+                                </div>
+                            </div>
+                        `}
+                    </div>
+                `;
+
+                scanResults.classList.remove('hidden');
+                scanResults.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        // Hash Checker Setup
+        function setupHashChecker() {
+            const hashForm = document.getElementById('hashForm');
+            const hashInput = document.getElementById('hashInput');
+
+            hashForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const hash = hashInput.value.trim();
+                const hashType = document.querySelector('input[name="hashType"]:checked')?.value;
+                
+                if (!hash) {
+                    const hashInfo = document.getElementById('hashInfo');
+                    hashInfo.textContent = 'Please enter a hash value';
+                    hashInfo.className = 'text-sm text-red-500 mt-2';
+                    return;
+                }
+
+                if (!hashType) {
+                    const hashInfo = document.getElementById('hashInfo');
+                    hashInfo.textContent = 'Please select a hash type';
+                    hashInfo.className = 'text-sm text-red-500 mt-2';
+                    return;
+                }
+
+                try {
+                    const hashInfo = document.getElementById('hashInfo');
+                    hashInfo.textContent = 'Analyzing hash...';
+                    hashInfo.className = 'text-sm text-blue-500 mt-2';
+
+                    const response = await fetch('/api/analyze-hash', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-Token': document.querySelector('input[name="_csrf"]').value
+                        },
+                        body: JSON.stringify({ hash, hashType })
+                    });
+
+                    const result = await response.json();
+                    
+                    if (!response.ok) {
+                        throw new Error(result.error || 'Error analyzing hash');
+                    }
+
+                    // If successful, redirect to the results page
+                    window.location.href = '/hash-results';
+                } catch (error) {
+                    console.error('Error:', error);
+                    const hashInfo = document.getElementById('hashInfo');
+                    hashInfo.textContent = error.message;
+                    hashInfo.className = 'text-sm text-red-500 mt-2';
+                }
+            });
+        }
+
+        // Show file scanner section by default when File Scanner tab is active
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('tab') === 'file' || window.location.hash === '#file') {
+                switchTab('file');
+            }
+        });
+    </script>
+</body>
+</html> 

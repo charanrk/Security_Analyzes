@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terms and Conditions - Security Analysis Tool</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            background: #1a1f2e;
+            min-height: 100vh;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(29, 78, 216, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(249, 115, 22, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.15) 0px, transparent 50%),
+                radial-gradient(at 0% 100%, rgba(20, 184, 166, 0.15) 0px, transparent 50%);
+        }
+        .terms-card {
+            background: rgba(30, 41, 59, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(8px);
+        }
+    </style>
+</head>
+<body class="text-gray-100">
+    <!-- Navigation Bar -->
+    <nav class="bg-gray-900 text-white py-4 px-6 flex justify-between items-center">
+        <div class="flex items-center">
+            <a href="/" class="text-xl font-bold">Security Analysis Tool</a>
+        </div>
+        <div class="flex items-center space-x-4">
+            <a href="/" class="text-blue-400 hover:text-blue-300">Back to Home</a>
+        </div>
+    </nav>
+
+    <div class="max-w-4xl mx-auto px-4 py-8">
+        <div class="terms-card rounded-xl p-8 space-y-8">
+            <div class="text-center mb-8">
+                <h1 class="text-3xl font-bold mb-2">Terms and Conditions</h1>
+                <p class="text-gray-400">Last updated: <%= new Date().toLocaleDateString() %></p>
+            </div>
+
+            <section class="space-y-6">
+                <div>
+                    <h2 class="text-xl font-semibold text-blue-400 mb-3">1. Acceptance of Terms</h2>
+                    <div class="space-y-2 text-gray-300">
+                        <p>• Users must agree to the terms before using the platform.</p>
+                        <p>• Continued use implies acceptance.</p>
+                    </div>
+                </div>
+
+                <div>
+                    <h2 class="text-xl font-semibold text-blue-400 mb-3">2. Purpose of the Platform</h2>
+                    <div class="space-y-2 text-gray-300">
+                        <p>• The platform is for security research, analysis, and educational purposes only.</p>
+                        <p>• It must not be used for malicious activities.</p>
+                    </div>
+                </div>
+
+                <div>
+                    <h2 class="text-xl font-semibold text-blue-400 mb-3">3. Data Usage and Privacy</h2>
+                    <div class="space-y-2 text-gray-300">
+                        <p>• Collection of search queries, logs, and user interactions.</p>
+                        <p>• No personal data will be shared with third parties unless required by law.</p>
+                    </div>
+                </div>
+
+                <div>
+                    <h2 class="text-xl font-semibold text-blue-400 mb-3">4. Restrictions on Use</h2>
+                    <div class="space-y-2 text-gray-300">
+                        <p>• No unauthorized access, hacking, or reverse engineering.</p>
+                        <p>• No uploading or searching for <em>live malware</em> intended for malicious use.</p>
+                        <p>• Users must not attempt to bypass security measures.</p>
+                    </div>
+                </div>
+
+                <div>
+                    <h2 class="text-xl font-semibold text-blue-400 mb-3">5. Accuracy and Liability</h2>
+                    <div class="space-y-2 text-gray-300">
+                        <p>• Malware information is provided <em>as is</em> with no guarantees.</p>
+                        <p>• The platform is not responsible for damages caused by incorrect data or analysis.</p>
+                    </div>
+                </div>
+
+                <div>
+                    <h2 class="text-xl font-semibold text-blue-400 mb-3">6. Intellectual Property</h2>
+                    <div class="space-y-2 text-gray-300">
+                        <p>• Any proprietary analysis reports or data are owned by the platform.</p>
+                        <p>• Users must not redistribute proprietary information without permission.</p>
+                    </div>
+                </div>
+
+                <div>
+                    <h2 class="text-xl font-semibold text-blue-400 mb-3">7. Compliance with Laws</h2>
+                    <div class="space-y-2 text-gray-300">
+                        <p>• Users must comply with cybersecurity laws in their region.</p>
+                        <p>• The platform will cooperate with law enforcement if necessary.</p>
+                    </div>
+                </div>
+
+                <div>
+                    <h2 class="text-xl font-semibold text-blue-400 mb-3">8. Termination of Access</h2>
+                    <div class="space-y-2 text-gray-300">
+                        <p>• The platform reserves the right to revoke access for any violation of the terms.</p>
+                    </div>
+                </div>
+            </section>
+
+            <div class="pt-8 text-center">
+                <a href="/" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition-all duration-200">
+                    Return to Home
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 

@@ -1,0 +1,342 @@
+{% extends "base.html" %}
+
+{% block title %}URL Security Analyzer - Home{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+    <!-- URL Analyzer Section -->
+    <section class="bg-white shadow rounded-lg p-6">
+        <h2 class="text-2xl font-bold mb-4">URL Security Analyzer</h2>
+        <form id="urlForm" class="space-y-4">
+            <div>
+                <label for="url" class="block text-sm font-medium text-gray-700">Enter URL to analyze</label>
+                <input type="url" id="url" name="url" required
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+            </div>
+            <button type="submit"
+                class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                Analyze URL
+            </button>
+        </form>
+        <div id="urlResults" class="mt-4 hidden">
+            <!-- Results will be displayed here -->
+        </div>
+    </section>
+
+    <!-- Hash Checker Section -->
+    <section class="bg-white shadow rounded-lg p-6">
+        <h2 class="text-2xl font-bold mb-4">Hash Checker</h2>
+        <form id="hashForm" class="space-y-4">
+            <div>
+                <label for="hash" class="block text-sm font-medium text-gray-700">Enter hash to check</label>
+                <input type="text" id="hash" name="hash" required
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Hash Type</label>
+                <div class="mt-2 space-y-2">
+                    <div class="flex items-center">
+                        <input type="radio" id="md5" name="type" value="md5" class="h-4 w-4 text-blue-600">
+                        <label for="md5" class="ml-2 text-sm text-gray-700">MD5</label>
+                    </div>
+                    <div class="flex items-center">
+                        <input type="radio" id="sha1" name="type" value="sha1" class="h-4 w-4 text-blue-600">
+                        <label for="sha1" class="ml-2 text-sm text-gray-700">SHA-1</label>
+                    </div>
+                    <div class="flex items-center">
+                        <input type="radio" id="sha256" name="type" value="sha256" checked class="h-4 w-4 text-blue-600">
+                        <label for="sha256" class="ml-2 text-sm text-gray-700">SHA-256</label>
+                    </div>
+                    <div class="flex items-center">
+                        <input type="radio" id="sha512" name="type" value="sha512" class="h-4 w-4 text-blue-600">
+                        <label for="sha512" class="ml-2 text-sm text-gray-700">SHA-512</label>
+                    </div>
+                </div>
+            </div>
+            <button type="submit"
+                class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                Check Hash
+            </button>
+        </form>
+        <div id="hashResults" class="mt-4 hidden">
+            <!-- Results will be displayed here -->
+        </div>
+    </section>
+
+    <!-- File Scanner Section -->
+    <section class="bg-white shadow rounded-lg p-6" id="fileScannerSection">
+        <h2 class="text-2xl font-bold mb-4">File Security Scanner</h2>
+        <div id="uploadStatus" class="mb-4 hidden">
+            <div class="bg-blue-50 border border-blue-200 rounded p-4">
+                <div class="flex items-center">
+                    <svg class="h-5 w-5 text-blue-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                    <span id="uploadStatusText" class="text-blue-700">Upload Status</span>
+                </div>
+                <div class="mt-2">
+                    <div class="w-full bg-blue-200 rounded-full h-2.5">
+                        <div id="uploadProgress" class="bg-blue-600 h-2.5 rounded-full" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <form id="fileForm" class="space-y-4">
+            <div class="flex flex-col items-center">
+                <div id="dropZone" class="w-full border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-blue-500 transition-colors">
+                    <div class="space-y-2">
+                        <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                            <path d="M24 32V16m0 0l-8 8m8-8l8 8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M3 15.9998V31.9998C3 34.2089 4.79086 35.9998 7 35.9998H41C43.2091 35.9998 45 34.2089 45 31.9998V15.9998C45 13.7907 43.2091 11.9998 41 11.9998H7C4.79086 11.9998 3 13.7907 3 15.9998Z" stroke-width="2"/>
+                        </svg>
+                        <div class="text-sm text-gray-600">
+                            <label for="file" class="relative cursor-pointer rounded-md font-medium text-blue-600 hover:text-blue-500">
+                                <span>Click to upload</span>
+                                <input id="file" name="file" type="file" class="sr-only" accept=".pdf,.doc,.docx,.txt,.json,.html,.jpg,.jpeg,.png,.gif">
+                            </label>
+                            <p class="pl-1">or drag and drop</p>
+                        </div>
+                        <p class="text-xs text-gray-500">Supported files: PDF, DOC, DOCX, TXT, JSON, HTML, Images</p>
+                        <p class="text-xs text-gray-500">Maximum file size: 50MB</p>
+                    </div>
+                </div>
+                <div id="fileInfo" class="mt-4 hidden w-full">
+                    <div class="flex items-center justify-between p-2 bg-gray-50 rounded">
+                        <div class="flex items-center">
+                            <svg class="h-6 w-6 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                            </svg>
+                            <span id="fileName" class="text-sm text-gray-600"></span>
+                        </div>
+                        <button type="button" id="removeFile" class="text-red-500 hover:text-red-700">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="flex justify-center">
+                <button type="submit" id="scanButton"
+                    class="bg-blue-500 text-white px-8 py-2 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                    Scan File
+                </button>
+            </div>
+        </form>
+        <div id="scanStatus" class="mt-4 hidden">
+            <div class="flex items-center justify-center p-4 bg-blue-50 border border-blue-200 rounded">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                <span class="ml-3 text-blue-700">Scanning file for security threats...</span>
+            </div>
+        </div>
+        <div id="fileResults" class="mt-4 hidden"></div>
+    </section>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Get all required DOM elements
+    const elements = {
+        urlForm: document.getElementById('urlForm'),
+        hashForm: document.getElementById('hashForm'),
+        fileForm: document.getElementById('fileForm'),
+        dropZone: document.getElementById('dropZone'),
+        fileInput: document.getElementById('file'),
+        fileInfo: document.getElementById('fileInfo'),
+        fileName: document.getElementById('fileName'),
+        removeFile: document.getElementById('removeFile'),
+        scanStatus: document.getElementById('scanStatus'),
+        scanButton: document.getElementById('scanButton'),
+        uploadStatus: document.getElementById('uploadStatus'),
+        uploadStatusText: document.getElementById('uploadStatusText'),
+        uploadProgress: document.getElementById('uploadProgress'),
+        fileResults: document.getElementById('fileResults')
+    };
+
+    // Verify all elements exist
+    Object.entries(elements).forEach(([key, element]) => {
+        if (!element) {
+            console.error(`Element '${key}' not found in the DOM`);
+        }
+    });
+
+    // URL Analyzer
+    if (elements.urlForm) {
+        elements.urlForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const url = document.getElementById('url').value;
+            try {
+                const response = await axios.post('/analyze-url', new FormData(this));
+                if (elements.urlResults) {
+                    elements.urlResults.innerHTML = `<pre class="bg-gray-100 p-4 rounded">${JSON.stringify(response.data, null, 2)}</pre>`;
+                    elements.urlResults.classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error analyzing URL');
+            }
+        });
+    }
+
+    // Hash Checker
+    if (elements.hashForm) {
+        elements.hashForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            try {
+                const response = await axios.post('/check-hash', formData);
+                if (elements.hashResults) {
+                    elements.hashResults.innerHTML = `<pre class="bg-gray-100 p-4 rounded">${JSON.stringify(response.data, null, 2)}</pre>`;
+                    elements.hashResults.classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error checking hash');
+            }
+        });
+    }
+
+    // File upload handling functions
+    function updateUploadProgress(event) {
+        if (event.lengthComputable && elements.uploadProgress && elements.uploadStatusText) {
+            const percentComplete = (event.loaded / event.total) * 100;
+            elements.uploadProgress.style.width = percentComplete + '%';
+            elements.uploadStatusText.textContent = `Uploading: ${Math.round(percentComplete)}%`;
+        }
+    }
+
+    function handleFile(file) {
+        if (!file || !elements.fileInfo || !elements.fileName || !elements.dropZone) return;
+
+        if (file.size > 50 * 1024 * 1024) { // 50MB limit
+            alert('File size exceeds 50MB limit');
+            return;
+        }
+        elements.fileName.textContent = `${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
+        elements.fileInfo.classList.remove('hidden');
+        elements.dropZone.classList.add('hidden');
+    }
+
+    // Drag and drop handlers
+    if (elements.dropZone) {
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            elements.dropZone.addEventListener(eventName, preventDefaults, false);
+        });
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            elements.dropZone.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            elements.dropZone.addEventListener(eventName, unhighlight, false);
+        });
+
+        elements.dropZone.addEventListener('drop', handleDrop, false);
+    }
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    function highlight(e) {
+        elements.dropZone.classList.add('border-blue-500');
+    }
+
+    function unhighlight(e) {
+        elements.dropZone.classList.remove('border-blue-500');
+    }
+
+    function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const file = dt.files[0];
+        if (elements.fileInput) {
+            elements.fileInput.files = dt.files;
+        }
+        handleFile(file);
+    }
+
+    // File input change handler
+    if (elements.fileInput) {
+        elements.fileInput.addEventListener('change', function(e) {
+            handleFile(e.target.files[0]);
+        });
+    }
+
+    // Remove file handler
+    if (elements.removeFile) {
+        elements.removeFile.addEventListener('click', function() {
+            if (elements.fileInput) {
+                elements.fileInput.value = '';
+            }
+            if (elements.fileInfo && elements.dropZone) {
+                elements.fileInfo.classList.add('hidden');
+                elements.dropZone.classList.remove('hidden');
+            }
+        });
+    }
+
+    // File form submit handler
+    if (elements.fileForm) {
+        elements.fileForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            if (!elements.fileInput || !elements.fileInput.files[0]) {
+                alert('Please select a file to scan');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', elements.fileInput.files[0]);
+            
+            if (elements.scanButton) elements.scanButton.disabled = true;
+            if (elements.uploadStatus) elements.uploadStatus.classList.remove('hidden');
+            if (elements.uploadProgress) elements.uploadProgress.style.width = '0%';
+            if (elements.uploadStatusText) elements.uploadStatusText.textContent = 'Starting upload...';
+            if (elements.fileResults) elements.fileResults.classList.add('hidden');
+            
+            try {
+                const response = await axios.post('/scan-file', formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data'
+                    },
+                    onUploadProgress: updateUploadProgress
+                });
+
+                if (response.data.status === 'success' || response.data.status === 'redirect') {
+                    if (response.data.message) {
+                        alert(response.data.message);
+                    }
+                    // Redirect to either login page or results page
+                    window.location.href = response.data.redirect;
+                } else {
+                    throw new Error(response.data.error || 'Unknown error occurred');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                const errorMessage = error.response?.data?.error || 'Error scanning file';
+                if (elements.fileResults) {
+                    elements.fileResults.innerHTML = `
+                        <div class="rounded-lg border border-red-200 p-4 bg-red-50 text-red-700">
+                            <div class="flex items-center">
+                                <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                <span>${errorMessage}</span>
+                            </div>
+                        </div>
+                    `;
+                    elements.fileResults.classList.remove('hidden');
+                }
+            } finally {
+                if (elements.scanButton) elements.scanButton.disabled = false;
+                if (elements.scanStatus) elements.scanStatus.classList.add('hidden');
+                if (elements.uploadStatus) elements.uploadStatus.classList.add('hidden');
+            }
+        });
+    }
+});
+</script>
+{% endblock %} 

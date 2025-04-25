@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hash Analysis Results</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            background: #0F1117;
+            color: #fff;
+        }
+        .nav-link {
+            color: #60A5FA;
+            transition: color 0.2s;
+        }
+        .nav-link:hover {
+            color: #93C5FD;
+        }
+        /* Error Popup Styles */
+        @keyframes slideDown {
+            from { transform: translate(-50%, -100%); opacity: 0; }
+            to { transform: translate(-50%, 0); opacity: 1; }
+        }
+        @keyframes slideUp {
+            from { transform: translate(-50%, 0); opacity: 1; }
+            to { transform: translate(-50%, -100%); opacity: 0; }
+        }
+        .error-popup {
+            position: fixed;
+            top: 2.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            background: #1E2533;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 0.5rem;
+            padding: 1rem 1.5rem;
+            min-width: 400px;
+            max-width: 90%;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(8px);
+        }
+        .animate-slide-down {
+            animation: slideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+        .animate-slide-up {
+            animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+    </style>
+    <script>
+        // Global error popup function
+        window.showErrorPopup = function(message) {
+            // Remove existing popup if any
+            const existingPopup = document.querySelector('.error-popup');
+            if (existingPopup) {
+                existingPopup.remove();
+            }
+
+            const popup = document.createElement('div');
+            popup.className = 'error-popup animate-slide-down';
+            popup.innerHTML = `
+                <div class="flex items-center gap-4">
+                    <div class="bg-red-500/20 rounded-full p-3">
+                        <i class="fas fa-exclamation-circle text-red-500 text-lg"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="font-medium text-white text-lg mb-1">Error</h3>
+                        <p class="text-gray-300">${message}</p>
+                    </div>
+                    <button onclick="this.parentElement.parentElement.remove()" class="text-gray-400 hover:text-white transition-colors p-2">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+            
+            document.body.appendChild(popup);
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                popup.classList.replace('animate-slide-down', 'animate-slide-up');
+                setTimeout(() => popup.remove(), 300);
+            }, 5000);
+        };
+    </script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="py-4 px-6 flex justify-between items-center">
+        <div class="flex items-center gap-2">
+            <i class="fas fa-shield-alt text-blue-500"></i>
+            <span class="text-xl font-semibold">Security Analysis Tool</span>
+        </div>
+        <div class="flex items-center gap-4">
+            <a href="/" class="nav-link flex items-center gap-2">
+                <i class="fas fa-plus"></i>
+                <span>New Analysis</span>
+            </a>
+            <% if (locals.user) { %>
+                <a href="/logout" class="nav-link flex items-center gap-2">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Sign Out</span>
+                </a>
+            <% } else { %>
+                <a href="/login" class="nav-link flex items-center gap-2">
+                    <i class="fas fa-sign-in-alt"></i>
+                    <span>Sign In</span>
+                </a>
+            <% } %>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-5xl mx-auto p-6">
+        <div class="bg-[#1A1D27] rounded-lg p-8">
+            <!-- Header -->
+            <div class="flex justify-between items-center mb-8">
+                <h1 class="text-2xl font-bold">Hash Analysis Results</h1>
+                <a href="/" class="nav-link flex items-center gap-2">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>New Analysis</span>
+                </a>
+            </div>
+
+            <!-- Hash Information -->
+            <div class="grid grid-cols-2 gap-8 mb-8">
+                <div>
+                    <h2 class="text-blue-400 font-medium mb-4">Hash Information</h2>
+                    <div class="space-y-4">
+                        <div>
+                            <span class="text-gray-400">Hash:</span>
+                            <p class="text-white font-mono break-all"><%= result.hashInfo.hash %></p>
+                        </div>
+                        <div>
+                            <span class="text-gray-400">Type:</span>
+                            <p class="text-white"><%= result.hashInfo.type %></p>
+                        </div>
+                        <div>
+                            <span class="text-gray-400">Length:</span>
+                            <p class="text-white"><%= result.hashInfo.hash.length %> characters</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Analysis Summary -->
+                <div>
+                    <h2 class="text-blue-400 font-medium mb-4">Analysis Summary</h2>
+                    <div class="space-y-4">
+                        <div>
+                            <span class="text-gray-400">Status:</span>
+                            <span class="ml-2 <%= result.analysisSummary.status.toLowerCase() === 'clean' ? 'text-green-400' : 'text-red-400' %>">
+                                <%= result.analysisSummary.status %>
+                            </span>
+                        </div>
+                        <div>
+                            <span class="text-gray-400">Confidence:</span>
+                            <span class="ml-2"><%= result.analysisSummary.confidence %>%</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-400">First Seen:</span>
+                            <span class="ml-2"><%= result.analysisSummary.firstSeen %></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detailed Analysis -->
+            <div class="mb-8">
+                <h2 class="text-blue-400 font-medium mb-4">Detailed Analysis</h2>
+                
+                <!-- Reputation Information -->
+                <div class="mb-6">
+                    <h3 class="text-lg font-medium mb-3">Reputation Information</h3>
+                    <div class="space-y-3">
+                        <% result.detailedAnalysis.reputation.forEach(source => { %>
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-300"><%= source.name %></span>
+                                <span class="<%= source.status.toLowerCase() === 'clean' ? 'text-green-400' : 'text-red-400' %>">
+                                    <%= source.status %>
+                                </span>
+                            </div>
+                        <% }); %>
+                    </div>
+                </div>
+
+                <!-- File Information -->
+                <div class="mb-6">
+                    <h3 class="text-lg font-medium mb-3">File Information</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <span class="text-gray-400">File Type:</span>
+                            <span class="ml-2">Executable</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-400">Size:</span>
+                            <span class="ml-2">2.4 MB</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-400">Magic:</span>
+                            <span class="ml-2">PE32+ executable for MS Windows</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detection History -->
+                <div>
+                    <h3 class="text-lg font-medium mb-3">Detection History</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                                <tr class="text-left text-gray-400">
+                                    <th class="pb-3">Date</th>
+                                    <th class="pb-3">Scanner</th>
+                                    <th class="pb-3">Result</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% result.detectionHistory.forEach(detection => { %>
+                                    <tr class="border-t border-gray-700">
+                                        <td class="py-3"><%= detection.date %></td>
+                                        <td class="py-3"><%= detection.scanner %></td>
+                                        <td class="py-3">
+                                            <span class="<%= detection.result.toLowerCase() === 'clean' ? 'text-green-400' : 'text-red-400' %>">
+                                                <%= detection.result %>
+                                            </span>
+                                        </td>
+                                    </tr>
+                                <% }); %>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Export Options -->
+            <div class="flex justify-end gap-4">
+                <button onclick="exportAsText()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg flex items-center gap-2 transition-colors">
+                    <i class="fas fa-file-alt"></i>
+                    <span>Export as Text</span>
+                </button>
+                <button onclick="exportAsPDF()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg flex items-center gap-2 transition-colors">
+                    <i class="fas fa-file-pdf"></i>
+                    <span>Export as PDF</span>
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Export functions
+        function exportAsText() {
+            const isLoggedIn = Boolean('<%= locals.user %>' !== '');
+            if (!isLoggedIn) {
+                showErrorPopup('Please log in to export the analysis results');
+                setTimeout(() => {
+                    window.location.href = '/login';
+                }, 2000);
+                return;
+            }
+            const result = JSON.parse('<%- JSON.stringify(result) %>');
+            const text = generateTextReport(result);
+            downloadFile(text, 'hash-analysis.txt', 'text/plain');
+        }
+
+        function exportAsPDF() {
+            const isLoggedIn = Boolean('<%= locals.user %>' !== '');
+            if (!isLoggedIn) {
+                showErrorPopup('Please log in to export the analysis results');
+                setTimeout(() => {
+                    window.location.href = '/login';
+                }, 2000);
+                return;
+            }
+            const result = JSON.parse('<%- JSON.stringify(result) %>');
+            const csrfToken = '<%= locals.csrfToken %>' || '';
+            
+            fetch('/export-hash-pdf', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': csrfToken
+                },
+                body: JSON.stringify(result)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Export failed');
+                }
+                return response.blob();
+            })
+            .then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'hash-analysis.pdf';
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showErrorPopup('Failed to export PDF. Please try again.');
+            });
+        }
+
+        function generateTextReport(result) {
+            let report = `Hash Analysis Report\n`;
+            report += `===================\n\n`;
+            report += `Analysis Date: ${new Date().toLocaleString()}\n\n`;
+            
+            report += `Hash Information:\n`;
+            report += `-----------------\n`;
+            report += `Hash: ${result.hashInfo.hash}\n`;
+            report += `Type: ${result.hashInfo.type}\n`;
+            report += `Status: ${result.analysisSummary.status}\n`;
+            report += `Confidence: ${result.analysisSummary.confidence}%\n`;
+            report += `First Seen: ${result.analysisSummary.firstSeen}\n\n`;
+
+            if (result.detailedAnalysis && result.detailedAnalysis.reputation) {
+                report += `Reputation Information:\n`;
+                report += `---------------------\n`;
+                result.detailedAnalysis.reputation.forEach(source => {
+                    report += `${source.name}: ${source.status}\n`;
+                });
+                report += '\n';
+            }
+
+            if (result.detectionHistory) {
+                report += `Detection History:\n`;
+                report += `-----------------\n`;
+                result.detectionHistory.forEach(detection => {
+                    report += `${detection.date} - ${detection.scanner}: ${detection.result}\n`;
+                });
+            }
+
+            return report;
+        }
+
+        function downloadFile(content, fileName, contentType) {
+            const a = document.createElement('a');
+            const file = new Blob([content], { type: contentType });
+            a.href = URL.createObjectURL(file);
+            a.download = fileName;
+            a.click();
+            URL.revokeObjectURL(a.href);
+        }
+    </script>
+</body>
+</html> 
