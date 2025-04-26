@@ -104,8 +104,7 @@ secureanalyzer-pro/
 ```
 
 ## 🚀 Installation
-
-![image alt](https://github.com/charanrk/Security_Analyzes/blob/77616c3dea0d37afe864c8b75323914f840b7951/Screenshot%202025-04-26%20152231.png)    
+    
 ### Prerequisites
 - Node.js (v16.x or higher)
 - MongoDB (v4.4 or higher)
@@ -220,6 +219,9 @@ const result = await client.scanFile('path/to/file');
 ```
 
 ## 📷 Images
+
+
+![image alt](https://github.com/charanrk/Security_Analyzes/blob/77616c3dea0d37afe864c8b75323914f840b7951/Screenshot%202025-04-26%20152231.png)
 
 
 ## 🛠️ Technologies Used Images
