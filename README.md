@@ -220,11 +220,20 @@ const result = await client.scanFile('path/to/file');
 
 ## 📷 Images
 
-
 ![image alt](https://github.com/charanrk/Security_Analyzes/blob/77616c3dea0d37afe864c8b75323914f840b7951/Screenshot%202025-04-26%20152231.png)
+![image alt](https://github.com/charanrk/Security_Analyzes/blob/cd41ceedc0d4bc833251d78446ba1abef6b26e3f/Screenshot%202025-04-26%20152305.png)
+![image alt](https://github.com/charanrk/Security_Analyzes/blob/cd41ceedc0d4bc833251d78446ba1abef6b26e3f/Screenshot%202025-04-26%20152439.png)
+![image alt](https://github.com/charanrk/Security_Analyzes/blob/cd41ceedc0d4bc833251d78446ba1abef6b26e3f/Screenshot%202025-04-26%20152524.png)
+![image alt](https://github.com/charanrk/Security_Analyzes/blob/cd41ceedc0d4bc833251d78446ba1abef6b26e3f/Screenshot%202025-04-26%20152541.png)
+![image alt](https://github.com/charanrk/Security_Analyzes/blob/cd41ceedc0d4bc833251d78446ba1abef6b26e3f/Screenshot%202025-04-26%20152608.png)
+![image alt](https://github.com/charanrk/Security_Analyzes/blob/cd41ceedc0d4bc833251d78446ba1abef6b26e3f/Screenshot%202025-04-26%20152712.png)
+![image alt](https://github.com/charanrk/Security_Analyzes/blob/cd41ceedc0d4bc833251d78446ba1abef6b26e3f/Screenshot%202025-04-26%20152734.png)
+![image alt](https://github.com/charanrk/Security_Analyzes/blob/cd41ceedc0d4bc833251d78446ba1abef6b26e3f/Screenshot%202025-04-26%20152834.png)
+![image alt](https://github.com/charanrk/Security_Analyzes/blob/cd41ceedc0d4bc833251d78446ba1abef6b26e3f/Screenshot%202025-04-26%20152904.png)
+![image alt](https://github.com/charanrk/Security_Analyzes/blob/cd41ceedc0d4bc833251d78446ba1abef6b26e3f/Screenshot%202025-04-26%20153021.png)
 
 
-## 🛠️ Technologies Used Images
+## 🛠️ Technologies Used 
 
 ### Frontend
 - EJS (Embedded JavaScript templating)
